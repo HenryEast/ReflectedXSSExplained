@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reflected XSS Explained</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="/styles/styles.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-md bg-primary navbar-light sticky-top"> <!-- Can also used "fixed" and "sticky" along with directions -->
+        <div class="container-xxl">
+            <a href="#" class="navbar-brand">
+                <span class="fw-bold">
+                    <p class="text-white fw-bold">Reflected XSS Explained</p>
+                </span>
+            </a>
+            <!-- Toggle for Mobile Nav -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#main-nav" aria-controls="main-nav" aria-expanded="false" aria-label="Toggle Navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end align-center" id="main-nav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="#">What is Reflected XSS?</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="#how-it-works">How does it work?</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="#demonstration">Demo</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="#prevention">Prevention and Mitigation</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="#examples">Real-world Examples</a>
+                    </li>
+                    <li class="nav-item"><a class="nav-link text-white" href="#resources">Resources</a></li>
+                </ul>
+            
+        </div>
+    </nav>
+
+
+    <main>
+        <section id="what-is-xss" class="pt-5 pb-3">
+            <div class="container">
+                <h2 class="display-5">What is Reflected XSS?</h2>
+                <p>Reflected Cross-Site Scripting (XSS) is a type of security vulnerability that occurs when an attacker injects malicious scripts into web applications, which are then reflected back to users via the web server. These scripts are often embedded in URLs or input fields and are executed within the victim's browser.</p>
+                <!-- Include more detailed explanation here -->
+            </div>
+        </section>
+        <hr>
+        <section id="how-it-works" class="py-3">
+            <div class="container">
+                <h2 class="display-5 text-end">How does it work?</h2>
+                <p class="text-end lead">The process can be broken down into the following sections:</p>
+                <div class="container pt-3">
+                    <div class="row align-items-stretch pb-2">
+                        <div class="col-md-4">
+                            <div class="card mb-4">
+                                <div class="card-header card-title fw-bold text-decoration-underline text-center ">1. Injection</div>
+                                <div class="card-body text-center py-4">
+                                    <p class="lead card-subtitle text-decoration-underline">Malicious URL</p>
+                                    <p class="card-text mx-2 text-muted d-md-block">The attacker crafts a URL or a form submission containing a malicious script payload. This payload is typically embedded within parameters or input fields of the web application.</p>
+                                    <img src="inc/injection.png" width="51" class="d-none mx-auto d-md-block" alt="">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card mb-4">
+                                <div class="card-header card-title fw-bold text-decoration-underline text-center ">2. Request to Server</div>
+                                <div class="card-body text-center py-4">
+                                    <p class="lead card-subtitle text-decoration-underline">URL Submission</p>
+                                    <p class="card-text mx-2 text-muted d-md-block">The attacker sends the crafted URL or submits the form to the vulnerable web application.</p>
+                                    <img src="inc/server.png" width="140" class="d-none mx-auto d-md-block" alt="">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border-danger border-2 mb-4">
+                                <div class="card-header text-center fw-bold text-decoration-underline">3. Server Processing</div>
+                                <div class="card-body text-center py-4">
+                                    <p class="lead card-subtitle text-decoration-underline">Validation</p>
+                                    <p class="card-text mx-1 text-muted d-md-block">The web server receives the request and processes the user-supplied data. The server does not properly validate or sanitise the input, allowing the malicious script to be included in the response. </p>
+                                </div>
+                                <div class="card-footer text-center text-danger">Where to address!</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row align-items-stretch pb-2">
+                        <div class="col-md-4">
+                            <div class="card mb-4">
+                                <div class="card-header text-center fw-bold text-decoration-underline">4. Response to User</div>
+                                <div class="card-body text-center py-4">
+                                    <p class="lead card-subtitle text-decoration-underline">Injected Script</p>
+                                    <p class="card-text mx-2 text-muted d-md-block">The server returns the processed response, including the injected script, to the user's browser. The browser interprets the script as part of the web page's content and executes it within the context of the user's session. </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card mb-4">
+                                <div class="card-header text-center fw-bold text-decoration-underline">5. Script Execution</div>
+                                <div class="card-body text-center py-4">
+                                    <p class="lead card-subtitle text-decoration-underline">Unaware Victim</p>
+                                    <p class="card-text mx-2 text-muted d-md-block">The injected script executes within the victim's browser, potentially leading to various malicious actions.</p>
+                                    <img src="inc/script.png" width="80" class="d-none mx-auto d-md-block" alt="">
+
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card mb-4 border-2 border-warning">
+                                <div class="card-header text-center fw-bold text-decoration-underline">Impact on Victim</div>
+                                <div class="card-body text-center py-4">
+                                <p class="card-text mx-2 text-muted d-md-block">Attackers can steal cookies, session tokens, sensitive information, or perform actions on behalf of the user. Logged in sessions can be redirected and mirrored to another system that the attacker is in control of. Attacks like this can be scaled up to a catastrophic scale. </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </section>
+        <hr>
+        <section id="demonstration"class="py-3">
+            <div class="container text-center">
+                <h2 class="display-5">Demonstration</h2>
+                <p class="lead">Here is a demonstration of an XSS Reflected vulnerability with an input field that does not use any prevention methods.</p>
+                <div class="container border rounded py-2 my-4">
+                    <h5 class="display-5 text-primary">1. Example Website</h5>
+                    <div class="container border rounded border-primary">
+                        <img src="inc/1.PNG" class="img-fluid" width="" alt="">
+                    </div>
+                    <p class="lead muted mx-3">Here is an example of a simple website with an input field for a user without any of prevention steps mentioned below.</p>
+                </div>
+                <div class="container border rounded py-2 my-4">
+                    <h5 class="display-5 text-success">2. Example Accepted Input</h5>
+                    <div class="container border rounded border-success">
+                        <img src="inc/2.PNG" class="img-fluid" width="" alt="">
+                    </div>
+                    <p class="lead muted mx-3">Here is an example of a potential malicious input within the website.</p>
+                </div>
+                <div class="container border rounded py-2 my-4">
+                    <h5 class="display-5 text-warning">3. Example Malicious Input</h5>
+                    <div class="container border rounded border-warning">
+                        <img src="inc/3.PNG" class="img-fluid" width="" alt="">
+                    </div>
+                    <p class="lead muted mx-3">Here is an example of an accepted input within the website.</p>
+                </div>
+                <div class="container border rounded py-2 my-4">
+                    <h5 class="display-5 text-danger">4. Example Malicious Output</h5>
+                    <div class="container border rounded border-danger">
+                        <img src="inc/4.PNG" class="img-fluid" width="" alt="">
+                    </div>
+                    <p class="lead muted mx-3">Here is an example of a script being executed within the website.</p>
+                </div>
+
+                <!-- Include examples here -->
+            </div>
+        </section>
+        <hr>
+        <section id="prevention" class="py-3">
+            <div class="container">
+                <h2 class="display-5 text-end">Prevention and Mitigation</h2>
+                <p class="text-end lead">There are four primary ways of preventing and mitigating Reflected XSS vulnerabilities.</p>
+                <div class="container-lg">
+                    <div class="row justify-content-center align-items-center my-5"> <!-- Aligns All items in the center of the row-->
+                        <div class="col-md-5 text-center text-md-start">
+                            <h1>
+                                <div class="display-4 text-end">Input Sanitisation</div>
+                                <div class="display-5 text-muted text-end">Filtering Data</div>
+                            </h1>
+                            <p class="lead my-4 text-muted">Input sanitisation involves filtering and cleansing user-supplied data to remove potentially harmful characters or scripts. By validating and sanitising inputs, web applications can prevent malicious code injection, this is one of the most successful methods for reducing the risk of XSS vulnerabilities.</p>
+                            <a href="#" class="btn btn-secondary btn-lg">Learn More</a>
+                        </div>
+                        <div class="col-md-5 text-center d-none d-md-block">
+                            <img class="img-fluid" src="inc/filtering.png" alt="">
+                            <p>Malicious input is stopped, valid input is authorised.</p>
+                        </div>
+                    </div>
+                    <div class="row justify-content-center align-items-center my-5"> <!-- Aligns All items in the center of the row-->
+                        <div class="col-md-5 text-center d-none d-md-block">
+                            <img class="img-fluid" src="inc/encoding.png" alt="">
+                            <p>Similar to digital encoding, output encoding can be used to reduce amount of output lines. Alongside filters, this can be a very powerful tool to stop Reflected XSS Attacks.</p>
+                        </div>
+                        <div class="col-md-5 text-center text-md-start">
+                            <h1>
+                                <div class="display-4 text-start">Output Encoding</div>
+                                <div class="display-5 text-muted text-start">Editing Data</div>
+                            </h1>
+                            <p class="lead my-4 text-muted">Output encoding edits user-generated content into a safe format before rendering it in the browser. This prevents malicious scripts from being executed by making sure that user input is treated as plain text rather than interpreted as HTML or JavaScript code, completely nullifying the ability to execute the malicious code.</p>
+                            <a href="#" class="btn btn-secondary btn-lg">Learn More</a>
+                        </div>
+                    </div>
+                </div>
+                <!---->
+                <div class="container-lg">
+                    <div class="row justify-content-center align-items-center my-5"> <!-- Aligns All items in the center of the row-->
+                        <div class="col-md-5 text-center text-md-start">
+                            <h1>
+                                <div class="display-4 text-end">Content Security Policy</div>
+                                <div class="display-5 text-muted text-end">CSP</div>
+                            </h1>
+                            <p class="lead my-4 text-muted">CSP is a security protocol that helps prevent XSS attacks by defining and enforcing a set of rules for resource loading and execution within web pages. By specifying trusted sources for scripts, stylesheets, and other content. Ensuring that all other potentially malicious content is discarded.</p>
+                            <a href="#" class="btn btn-secondary btn-lg">Learn More</a>
+                        </div>
+                        <div class="col-md-5 text-center d-none d-md-block">
+                            <img class="img-fluid" src="inc/csp.png" alt="">
+                            <p>Malicious requests are stopped, valid requests are authorised.</p>
+                        </div>
+                    </div>
+                    <div class="row justify-content-center align-items-center my-5"> <!-- Aligns All items in the center of the row-->
+                        <div class="col-md-5 text-center d-none d-md-block">
+                            <img class="img-fluid" src="inc/httpcookies.png" alt="">
+                            <p></p>
+                        </div>
+                        <div class="col-md-5 text-center text-md-start">
+                            <h1>
+                                <div class="display-4 text-start">HTTPOnly Cookies</div>
+                                <div class="display-5 text-muted text-start">Flagging</div>
+                            </h1>
+                            <p class="lead my-4 text-muted">HTTPOnly cookies are session cookies flagged with the "HttpOnly" attribute, which prevents client-side scripts from accessing them. By restricting cookie access to HTTP requests only, it mitigates the risk of session hijacking and cookie-based attacks.</p>
+                            <a href="#" class="btn btn-secondary btn-lg">Learn More</a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Include prevention techniques here -->
+            </div>
+        </section>
+        <hr>
+        <section id="examples"class="py-3">
+            <div class="container">
+                <h2 class="display-5">Real-world Examples</h2>
+                <p class="lead">These examples highlight the diverse range of targets and potential impacts of Reflected XSS attacks in the real world.</p>
+                <ul>
+                    <li>Social Media Platforms: Attackers can exploit Reflected XSS vulnerabilities on social media platforms to spread malicious links or scripts.</li>
+                    <li>Online Forums and Comment Sections: Reflected XSS attacks are commonly seen in online forums and comment sections of websites.</li>
+                    <li>E-commerce Websites: Attackers can target e-commerce websites with Reflected XSS attacks to steal users' payment information or personal data.</li>
+                    <li>Banking and Financial Websites: Reflected XSS vulnerabilities in banking and financial websites pose significant risks to users' financial security.</li>
+                    <li>Government Websites: Even government websites are not immune to Reflected XSS attacks.</li>
+                </ul>
+                <div class="row align-items-stretch pt-2 pb-2">
+                    <div class="col-md-4">
+                        <div class="card mb-4 border border-2 border-primary">
+                            <div class="card-header card-title fw-bold text-decoration-underline text-center ">MySpace Worm</div>
+                            <div class="card-body text-center py-4">
+                                <p class="lead card-subtitle text-decoration-underline">2005 | MySpace</p>
+                                <p class="card-text mx-2 text-muted d-md-block">In 2005, a hacker named Samy Kamkar launched a Reflected XSS attack on the social networking site MySpace, spreading a self-replicating worm known as the "Samy Worm." The worm exploited a vulnerability in MySpace's profile page to inject JavaScript code into users' profiles. When other users viewed these profiles, they unknowingly added the worm to their own profiles, spreading it rapidly across the platform.</p>
+                            </div>
+                            <div class="card-footer text-center text-primary">Social Media!</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card mb-4 border border-2 border-warning">
+                            <div class="card-header card-title fw-bold text-decoration-underline text-center ">Gmail XSS Vulnerability</div>
+                            <div class="card-body text-center py-4">
+                                <p class="lead card-subtitle text-decoration-underline">2007 | Gmail</p>
+                                <p class="card-text mx-2 text-muted d-md-block">In 2007, a security researcher discovered a Reflected XSS vulnerability in Google's Gmail service. The vulnerability allowed attackers to craft malicious emails containing JavaScript code that executed when recipients opened the emails. This could potentially lead to account compromise or the theft of sensitive information stored in Gmail accounts.</p>
+                            </div>
+                            <div class="card-footer text-center text-warning">Communication Sector!</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-danger border-2 mb-4">
+                            <div class="card-header text-center fw-bold text-decoration-underline">Equifax Website Vulnerability</div>
+                            <div class="card-body text-center py-4">
+                                <p class="lead card-subtitle text-decoration-underline">2017 | Equifax</p>
+                                <p class="card-text mx-1 text-muted d-md-block">In 2017, Equifax, one of the largest credit reporting agencies in the United States, suffered a data breach due to a Reflected XSS vulnerability on its website. Attackers exploited the vulnerability to inject malicious code into web pages, potentially exposing the personal and financial information of millions of individuals.</p>
+                            </div>
+                            <div class="card-footer text-center text-danger">Finance Sector!</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <hr>
+        <section id="resources" class="py-3">
+            <div class="container">
+                <h2 class="display-5">Resources</h2>
+                <p>Provide links to additional resources for learning more about XSS vulnerabilities and web security.</p>
+                <div class="row my-5 align-items-center justify-content-center"><!--"align" = vertical, "justify" = horizontal-->        
+                    <div class="col-8 col-lg-4 col-xl-3">
+                        <div class="card border-1">
+                            <div class="card-body text-center py-4">
+                                <h4 class="card-title">Reflected Cross Site Scripting Explained</h4>
+                                <p class="lead card-subtitle">Andrew Hoffman</p>
+                                <p class="display-5 my-4 text-primary fw-bold">Yotube Video</p>
+                                <p class="card-text mx-5 text-muted d.none d-lg-block">A short video explaining and demonstrating the XSS Vulnerability.</p>
+                                <a href="https://www.youtube.com/watch?v=T0vxdqvW9fU" class="btn btn-outline-primary btn-lg mt-3">Learn More</a>
+                            </div>
+                        </div>
+                    </div>    
+                    <div class="col-8 col-lg-4 col-xl-3">
+                        <div class="card border-1">
+                            <div class="card-body text-center py-4">
+                                <h4 class="card-title">Reflected XSS: Examples, Testing, and Prevention</h4>
+                                <p class="lead card-subtitle">Oliver Moradov</p>
+                                <p class="display-5 my-4 text-primary fw-bold">Blog</p>
+                                <p class="card-text mx-5 text-muted d.none d-lg-block">A blog post on brightsec.com that goes through various examples, testing methods and prevention methods of the vulnerability.</p>
+                                <a href="https://brightsec.com/blog/reflected-xss/" class="btn btn-outline-primary btn-lg mt-3">Learn More</a>
+                            </div>
+                        </div>
+                    </div>   
+                    <div class="col-8 col-lg-4 col-xl-3">
+                        <div class="card border-1">
+                            <div class="card-body text-center py-4">
+                                <h4 class="card-title">Reflected XSS</h4>
+                                <p class="lead card-subtitle">Portswigger.net</p>
+                                <p class="display-5 my-4 text-primary fw-bold">Website</p>
+                                <p class="card-text mx-5 text-muted d.none d-lg-block">An indepth look into the vulnerability on a trusted platform.</p>
+                                <a href="https://portswigger.net/web-security/cross-site-scripting/reflected" class="btn btn-outline-primary btn-lg mt-3">Learn More</a>
+                            </div>
+                        </div>
+                    </div>   
+                    <div class="col-8 col-lg-4 col-xl-3">
+                        <div class="card border-1">
+                            <div class="card-body text-center py-4">
+                                <h4 class="card-title">XSS News Updates</h4>
+                                <p class="lead card-subtitle">BleepingComputer.com</p>
+                                <p class="display-5 my-4 text-primary fw-bold">News</p>
+                                <p class="card-text mx-5 text-muted d.none d-lg-block">The latest news on XSS attacks.</p>
+                                <a href="https://www.bleepingcomputer.com/tag/xss/" class="btn btn-outline-primary btn-lg mt-3">Button!</a>
+                            </div>
+                        </div>
+                    </div>   
+
+                </div>
+                <!-- Include links to resources here -->
+            </div>
+        </section>
+        <!-- Include other sections similarly -->
+
+
+
+
+
+    </main>
+
+    <footer class="bg-primary text-white py-3">
+        <div class="container">
+            <p>&copy; 2024 |  Henry Eastham | 21432483</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+</body>
+</html>
